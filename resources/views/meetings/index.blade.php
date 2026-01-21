@@ -39,7 +39,7 @@
             <div class="d-grid gap-2 d-md-flex justify-content-md-end w-100">
                 @guest
                     <a href="{{ route('login') }}" class="btn btn-primary fw-bold shadow-sm">
-                        🔐 Login Admin
+                        Login Admin
                     </a>
                 @else
                     <div class="dropdown">
@@ -133,13 +133,12 @@
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             
-            // FITUR ANTI-BACK (Supaya pas logout gak bisa back ke dalem)
+            // FITUR ANTI-BACK
             history.pushState(null, null, location.href);
             window.onpopstate = function () {
                 history.go(1);
             };
             
-            // Cek apakah user adalah admin (untuk nampilin tombol edit/hapus)
             const IS_ADMIN = @json(auth()->check() && auth()->user()->role == 'admin');
 
             var calendarEl = document.getElementById('calendar');
@@ -149,7 +148,7 @@
                 initialView: window.innerWidth < 768 ? 'listMonth' : 'dayGridMonth',
                 
                 themeSystem: 'bootstrap5',
-                locale: 'id', // Bahasa Indonesia
+                locale: 'id',
                 slotLabelFormat: { hour: '2-digit', minute: '2-digit', hour12: false, meridiem: false },
                 eventTimeFormat: { hour: '2-digit', minute: '2-digit', hour12: false },
                 
@@ -167,7 +166,6 @@
                     var eventObj = info.event;
                     var props = eventObj.extendedProps;
 
-                    // Isi data ke Modal
                     document.getElementById('modalTitle').innerText = 'Detail: ' + eventObj.title;
                     document.getElementById('modalTopic').innerText = eventObj.title;
                     
@@ -175,7 +173,7 @@
                     document.getElementById('modalTime').innerText = waktu;
                     document.getElementById('modalDuration').innerText = props.durasi;
                     
-                    // Logika Tombol Zoom vs Offline
+                    // Button Online / Offline
                     var actionArea = document.getElementById('actionArea');
                     actionArea.innerHTML = ''; 
 
@@ -185,7 +183,7 @@
                         actionArea.innerHTML = `<div class="alert alert-secondary text-center fw-bold">🏢 Meeting Offline (Tatap Muka)</div>`;
                     }
 
-                    // Logika Tombol Admin
+                    // Button Admin
                     var adminDiv = document.getElementById('adminActions');
                     
                     if (IS_ADMIN) {
@@ -197,7 +195,6 @@
                         adminDiv.classList.add('d-none');
                     }
 
-                    // Tampilkan Modal
                     var myModal = new bootstrap.Modal(document.getElementById('eventModal'));
                     myModal.show();
                 }
