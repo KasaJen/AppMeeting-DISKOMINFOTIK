@@ -36,18 +36,18 @@
                 <h2 class="fw-bold text-dark m-0 text-center text-md-start">Kalender Jadwal Meeting</h2>
             </div>
             
-            <div class="d-flex gap-2 w-100 w-md-auto justify-content-center justify-content-md-end">
+            <div class="d-grid gap-2 d-md-flex justify-content-md-end w-100">
                 
                 @guest
-                    <a href="{{ route('login') }}" class="btn btn-primary fw-bold shadow-sm w-100 w-md-auto">
+                    <a href="{{ route('login') }}" class="btn btn-primary fw-bold shadow-sm">
                         🔐 Login Admin
                     </a>
                 @else
                     <div class="dropdown">
-                        <button class="btn btn-light dropdown-toggle shadow-sm" type="button" data-bs-toggle="dropdown">
+                        <button class="btn btn-light dropdown-toggle shadow-sm w-100" type="button" data-bs-toggle="dropdown">
                             👤 {{ Auth::user()->name }} <span class="badge bg-secondary">{{ Auth::user()->role }}</span>
                         </button>
-                        <ul class="dropdown-menu">
+                        <ul class="dropdown-menu dropdown-menu-end">
                             <li>
                                 <form action="{{ route('logout') }}" method="POST">
                                     @csrf
@@ -59,11 +59,11 @@
 
                     @if(auth()->user()->role == 'admin')
                         <div class="d-flex gap-2">
-                            <a href="{{ route('create.user') }}" class="btn btn-success shadow">
+                            <a href="{{ route('create.user') }}" class="btn btn-success shadow w-100">
                                 + User
                             </a>
                             
-                            <a href="{{ url('/buat-meeting') }}" class="btn btn-primary shadow">
+                            <a href="{{ url('/buat-meeting') }}" class="btn btn-primary shadow w-100">
                                 + Jadwal
                             </a>
                         </div>
