@@ -29,18 +29,18 @@
 <body class="p-4">
     <div class="container">
         
-        <div class="d-flex justify-content-between align-items-center mb-4">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-center mb-4 gap-3">
             
             <div class="d-flex align-items-center gap-3">
                 <img src="{{ asset('images/KotaBanjarmasin.png') }}" alt="Logo Kota" style="height: 50px; width: auto;">
-                <h2 class="fw-bold text-dark m-0">Kalender Jadwal Meeting</h2>
+                <h2 class="fw-bold text-dark m-0 text-center text-md-start">Kalender Jadwal Meeting</h2>
             </div>
             
-            <div class="d-flex gap-2">
+            <div class="d-flex gap-2 w-100 w-md-auto justify-content-center justify-content-md-end">
                 
                 @guest
-                    <a href="{{ route('login') }}" class="btn btn-primary fw-bold shadow-sm">
-                        Login Admin
+                    <a href="{{ route('login') }}" class="btn btn-primary fw-bold shadow-sm w-100 w-md-auto">
+                        🔐 Login Admin
                     </a>
                 @else
                     <div class="dropdown">
@@ -60,16 +60,16 @@
                     @if(auth()->user()->role == 'admin')
                         <div class="d-flex gap-2">
                             <a href="{{ route('create.user') }}" class="btn btn-success shadow">
-                                Tambah User Baru
+                                + User
                             </a>
                             
                             <a href="{{ url('/buat-meeting') }}" class="btn btn-primary shadow">
-                                Tambah Jadwal Baru
+                                + Jadwal
                             </a>
                         </div>
                     @endif
                 @endguest
-                </div>
+            </div>
         </div>
 
         @if(session('success'))
@@ -131,14 +131,20 @@
 
             var calendarEl = document.getElementById('calendar');
             var calendar = new FullCalendar.Calendar(calendarEl, {
-                initialView: 'dayGridMonth',
+                
+                initialView: window.innerWidth < 768 ? 'listMonth' : 'dayGridMonth',
+                
                 themeSystem: 'bootstrap5',
                 locale: 'id',
                 slotLabelFormat: { hour: '2-digit', minute: '2-digit', hour12: false, meridiem: false },
                 eventTimeFormat: { hour: '2-digit', minute: '2-digit', hour12: false },
+                
                 headerToolbar: {
-                    left: 'prev,next today', center: 'title', right: 'dayGridMonth,timeGridWeek,timeGridDay'
+                    left: 'prev,next today', 
+                    center: 'title', 
+                    right: window.innerWidth < 768 ? '' : 'dayGridMonth,timeGridWeek,timeGridDay'
                 },
+                
                 events: @json($events),
 
                 eventClick: function(info) {
