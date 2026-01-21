@@ -37,7 +37,6 @@
             </div>
             
             <div class="d-grid gap-2 d-md-flex justify-content-md-end w-100">
-                
                 @guest
                     <a href="{{ route('login') }}" class="btn btn-primary fw-bold shadow-sm">
                         🔐 Login Admin
@@ -62,7 +61,6 @@
                             <a href="{{ route('create.user') }}" class="btn btn-success shadow w-100">
                                 + User
                             </a>
-                            
                             <a href="{{ url('/buat-meeting') }}" class="btn btn-primary shadow w-100">
                                 + Jadwal
                             </a>
@@ -87,6 +85,20 @@
         @endif
 
         <div id='calendar'></div>
+
+        <footer class="text-center mt-5 mb-4 text-muted">
+            <small>
+                &copy; {{ date('Y') }} 
+                <a href="https://diskominfotik.banjarmasinkota.go.id/" target="_blank" class="text-decoration-none text-secondary fw-bold">
+                    Pemerintah Kota Banjarmasin
+                </a>
+                <br>
+                <a href="https://www.instagram.com/rezarevaldyy" target="_blank" class="text-decoration-none text-muted">
+                    Developed with <span class="text-danger">❤️</span>
+                </a>
+            </small>
+        </footer>
+
     </div>
 
     <div class="modal fade" id="eventModal" tabindex="-1">
@@ -121,24 +133,27 @@
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             
-            // FITUR ANTI-BACK
+            // FITUR ANTI-BACK (Supaya pas logout gak bisa back ke dalem)
             history.pushState(null, null, location.href);
             window.onpopstate = function () {
                 history.go(1);
             };
             
+            // Cek apakah user adalah admin (untuk nampilin tombol edit/hapus)
             const IS_ADMIN = @json(auth()->check() && auth()->user()->role == 'admin');
 
             var calendarEl = document.getElementById('calendar');
             var calendar = new FullCalendar.Calendar(calendarEl, {
                 
+                // Responsiveness: HP pakai List, Laptop pakai Grid
                 initialView: window.innerWidth < 768 ? 'listMonth' : 'dayGridMonth',
                 
                 themeSystem: 'bootstrap5',
-                locale: 'id',
+                locale: 'id', // Bahasa Indonesia
                 slotLabelFormat: { hour: '2-digit', minute: '2-digit', hour12: false, meridiem: false },
                 eventTimeFormat: { hour: '2-digit', minute: '2-digit', hour12: false },
                 
+                // Toolbar: Sederhana di HP, Lengkap di Laptop
                 headerToolbar: {
                     left: 'prev,next today', 
                     center: 'title', 
@@ -147,26 +162,30 @@
                 
                 events: @json($events),
 
+                // Saat jadwal diklik
                 eventClick: function(info) {
                     var eventObj = info.event;
                     var props = eventObj.extendedProps;
 
+                    // Isi data ke Modal
                     document.getElementById('modalTitle').innerText = 'Detail: ' + eventObj.title;
                     document.getElementById('modalTopic').innerText = eventObj.title;
+                    
                     var waktu = eventObj.start.toLocaleString('id-ID', { dateStyle: 'full', timeStyle: 'short' });
                     document.getElementById('modalTime').innerText = waktu;
                     document.getElementById('modalDuration').innerText = props.durasi;
                     
-                    // BUTTON ONLINE / OFFLINE
+                    // Logika Tombol Zoom vs Offline
                     var actionArea = document.getElementById('actionArea');
                     actionArea.innerHTML = ''; 
 
                     if (props.join_url) {
-                        actionArea.innerHTML = `<a href="${props.join_url}" target="_blank" class="btn btn-success fw-bold">Gabung Zoom Sekarang</a>`;
+                        actionArea.innerHTML = `<a href="${props.join_url}" target="_blank" class="btn btn-success fw-bold">🚀 Gabung Zoom Sekarang</a>`;
                     } else {
-                        actionArea.innerHTML = `<div class="alert alert-secondary text-center fw-bold">Meeting Offline</div>`;
+                        actionArea.innerHTML = `<div class="alert alert-secondary text-center fw-bold">🏢 Meeting Offline (Tatap Muka)</div>`;
                     }
 
+                    // Logika Tombol Admin
                     var adminDiv = document.getElementById('adminActions');
                     
                     if (IS_ADMIN) {
@@ -178,6 +197,7 @@
                         adminDiv.classList.add('d-none');
                     }
 
+                    // Tampilkan Modal
                     var myModal = new bootstrap.Modal(document.getElementById('eventModal'));
                     myModal.show();
                 }

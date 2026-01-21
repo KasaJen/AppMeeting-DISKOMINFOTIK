@@ -83,5 +83,19 @@
             time_24hr: true
         });
     </script>
+
+    <footer class="text-center mt-5 mb-4 text-muted">
+            <small>
+                &copy; {{ date('Y') }} 
+                <a href="https://diskominfotik.banjarmasinkota.go.id/" target="_blank" class="text-decoration-none text-secondary fw-bold">
+                    Pemerintah Kota Banjarmasin
+                </a>
+                <br>
+                <a href="https://www.instagram.com/rezarevaldyy" target="_blank" class="text-decoration-none text-muted">
+                    Developed with <span class="text-danger">❤️</span>
+                </a>
+            </small>
+    </footer>
+    
 </body>
 </html>
