@@ -35,7 +35,6 @@ class LoginController extends Controller
         $this->middleware('auth')->only('logout');
     }
 
-    // --- [INI FUNGSI BARU UNTUK MEMBERSIHKAN TOKEN] ---
     public function logout(Request $request)
     {
         Auth::logout();
