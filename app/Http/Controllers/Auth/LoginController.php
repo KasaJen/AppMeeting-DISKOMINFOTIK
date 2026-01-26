@@ -22,7 +22,7 @@ class LoginController extends Controller
      *
      * @var string
      */
-    protected $redirectTo = '/'; // <--- Saya ubah ke '/' supaya langsung ke dashboard/kalender
+    protected $redirectTo = '/';
 
     /**
      * Create a new controller instance.
@@ -41,6 +41,6 @@ class LoginController extends Controller
 
         $request->session()->invalidate();
         $request->session()->regenerateToken();
-        return redirect('/');
+        return redirect('/')->with('success', 'Anda berhasil Logout!');
     }
 }
