@@ -13,7 +13,7 @@ class MeetingController extends Controller
         $meetings = Meeting::orderBy('created_at', 'desc')->get();
 
         $events = $meetings->map(function($item) {
-            // Logika Warna: Kalau ada Link Zoom = Biru (#3788d8), Kalau Offline = Hijau (#198754)
+            // Logika Warna: Kalau ada Link Meeting = Biru, Kalau Offline = Hijau
             $warna = !empty($item->join_url) ? '#3788d8' : '#198754';
 
             return [
@@ -42,7 +42,7 @@ class MeetingController extends Controller
 
     public function store(Request $request)
     {
-        // 1. CEK BENTROK JADWAL
+        // CEK BENTROK JADWAL
         $newStart = Carbon::parse($request->tanggal . ' ' . $request->jam . ':00');
         $newEnd   = $newStart->copy()->addMinutes($request->duration);
 
@@ -55,17 +55,17 @@ class MeetingController extends Controller
             return back()->withInput()->with('error', 'GAGAL! Jadwal bentrok dengan meeting lain di jam tersebut.');
         }
 
-        // 2. TENTUKAN LINK ZOOM (Manual)
+        // TENTUKAN LINK ZOOM (Manual)
         // Kalau tipe offline, link dikosongkan (null). Kalau online, ambil inputan user.
         $linkZoom = ($request->tipe == 'online') ? $request->join_url : null;
 
-        // 3. SIMPAN KE DATABASE
+        // SIMPAN KE DATABASE
         Meeting::create([
             'topic'           => $request->topic,
             'start_time'      => $request->tanggal . ' ' . $request->jam . ':00',
             'duration'        => $request->duration,
-            'join_url'        => $linkZoom,       // Simpan link manual
-            'zoom_meeting_id' => null,            // Tidak pakai API lagi
+            'join_url'        => $linkZoom,
+            'zoom_meeting_id' => null,
             'password'        => null,
         ]);
 
@@ -80,7 +80,7 @@ class MeetingController extends Controller
 
     public function update(Request $request, $id)
     {
-        // 1. CEK BENTROK (Kecuali dirinya sendiri)
+        // CEK BENTROK (Kecuali dirinya sendiri)
         $newStart = Carbon::parse($request->tanggal . ' ' . $request->jam . ':00');
         $newEnd   = $newStart->copy()->addMinutes($request->duration);
 
@@ -96,7 +96,7 @@ class MeetingController extends Controller
 
         $meeting = Meeting::find($id);
 
-        // 2. UPDATE DATA
+        // UPDATE DATA
         // Cek lagi apakah user mengubah tipe jadi Offline/Online
         $linkZoom = ($request->tipe == 'online') ? $request->join_url : null;
 
@@ -104,7 +104,7 @@ class MeetingController extends Controller
             'topic'      => $request->topic,
             'start_time' => $request->tanggal . ' ' . $request->jam . ':00',
             'duration'   => $request->duration,
-            'join_url'   => $linkZoom // Update link manual
+            'join_url'   => $linkZoom
         ]);
 
         return redirect('/')->with('success', 'Jadwal berhasil diperbarui!');
@@ -114,7 +114,7 @@ class MeetingController extends Controller
     {
         $meeting = Meeting::find($id);
         if ($meeting) {
-            $meeting->delete(); // Hapus database saja (Zoom API sudah dibuang)
+            $meeting->delete();
         }
         
         return redirect()->back()->with('success', 'Jadwal berhasil dihapus!');
