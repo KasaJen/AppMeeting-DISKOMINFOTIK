@@ -4,28 +4,36 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Meeting;
+use App\Models\Place;
 use Carbon\Carbon;
 
 class MeetingController extends Controller
 {
+    // HALAMAN UTAMA (KALENDER)
     public function index()
     {
         $meetings = Meeting::orderBy('created_at', 'desc')->get();
 
         $events = $meetings->map(function($item) {
-            // Logika Warna: Kalau ada Link Meeting = Biru, Kalau Offline = Hijau
+            // Logika Warna: Online = Biru, Offline = Hijau
             $warna = !empty($item->join_url) ? '#3788d8' : '#198754';
 
             return [
                 'id' => $item->id,
-                'title' => $item->topic,
+                'title' => $item->agency,
                 'start' => $item->start_time,
                 'end'   => date('Y-m-d H:i:s', strtotime($item->start_time) + ($item->duration * 60)),
                 'color' => $warna, 
                 
                 'extendedProps' => [
+                    'deskripsi' => $item->description,
                     'durasi' => $item->duration,
+                    'place' => $item->place,
+                    
                     'join_url' => $item->join_url,
+                    'meeting_id' => $item->zoom_meeting_id,
+                    'password' => $item->password,
+
                     'edit_url' => route('edit.meeting', $item->id),
                     'delete_id' => $item->id 
                 ]
@@ -35,9 +43,30 @@ class MeetingController extends Controller
         return view('meetings.index', compact('events'));
     }
 
+    // FITUR TAMBAH TEMPAT BARU
+    public function createPlace()
+    {
+        return view('places.create');
+    }
+
+    public function storePlace(Request $request)
+    {
+        $request->validate(['name' => 'required|string|max:255']);
+        
+        $place = Place::create(['name' => $request->name]);
+
+        if ($request->ajax()) {
+            return response()->json(['success' => true, 'data' => $place]);
+        }
+
+        return redirect('/')->with('success', 'Tempat baru berhasil ditambahkan!');
+    }
+
+    // HALAMAN BUAT JADWAL
     public function create()
     {
-        return view('meetings.create');
+        $places = Place::all(); 
+        return view('meetings.create', compact('places'));
     }
 
     public function store(Request $request)
@@ -55,32 +84,55 @@ class MeetingController extends Controller
             return back()->withInput()->with('error', 'GAGAL! Jadwal bentrok dengan meeting lain di jam tersebut.');
         }
 
-        // TENTUKAN LINK ZOOM (Manual)
-        // Kalau tipe offline, link dikosongkan (null). Kalau online, ambil inputan user.
-        $linkZoom = ($request->tipe == 'online') ? $request->join_url : null;
+        // LOGIKA PENENTUAN TEMPAT & DATA ONLINE
+        $link = null;
+        $meetingId = null;
+        $passcode = null;
+        $tempat = null;
+
+        if ($request->tipe == 'online') {
+            $tempat    = 'Meeting Online';
+            $link      = $request->join_url;
+            $meetingId = $request->zoom_meeting_id;
+            $passcode  = $request->password;
+        } else {
+            // Kalau Offline
+            if ($request->lokasi_type == 'bcc') {
+                $tempat = 'Banjarmasin Command Center (BCC)';
+            } else {
+                $placeData = Place::find($request->place_id);
+                $tempat = $placeData ? $placeData->name : 'Tempat Tidak Dikenal';
+            }
+        }
 
         // SIMPAN KE DATABASE
         Meeting::create([
-            'topic'           => $request->topic,
+            'agency'          => $request->agency,
+            'description'     => $request->description,
             'start_time'      => $request->tanggal . ' ' . $request->jam . ':00',
             'duration'        => $request->duration,
-            'join_url'        => $linkZoom,
-            'zoom_meeting_id' => null,
-            'password'        => null,
+            'place'           => $tempat,
+            
+            // Data Online
+            'join_url'        => $link,
+            'zoom_meeting_id' => $meetingId, 
+            'password'        => $passcode,
         ]);
 
         return redirect('/')->with('success', 'Jadwal berhasil dibuat!');
     }
 
+    // HALAMAN EDIT JADWAL
     public function edit($id)
     {
         $meeting = Meeting::find($id);
-        return view('meetings.edit', compact('meeting'));
+        $places = Place::all();
+        return view('meetings.edit', compact('meeting', 'places'));
     }
 
     public function update(Request $request, $id)
     {
-        // CEK BENTROK (Kecuali dirinya sendiri)
+        // CEK BENTROK
         $newStart = Carbon::parse($request->tanggal . ' ' . $request->jam . ':00');
         $newEnd   = $newStart->copy()->addMinutes($request->duration);
 
@@ -96,15 +148,37 @@ class MeetingController extends Controller
 
         $meeting = Meeting::find($id);
 
-        // UPDATE DATA
-        // Cek lagi apakah user mengubah tipe jadi Offline/Online
-        $linkZoom = ($request->tipe == 'online') ? $request->join_url : null;
+        // LOGIKA UPDATE
+        $link = null;
+        $meetingId = null;
+        $passcode = null;
+        $tempat = null;
 
+        if ($request->tipe == 'online') {
+            $tempat    = 'Meeting Online';
+            $link      = $request->join_url;
+            $meetingId = $request->zoom_meeting_id;
+            $passcode  = $request->password;
+        } else {
+            // Kalau Offline
+            if ($request->lokasi_type == 'bcc') {
+                $tempat = 'Banjarmasin Command Center (BCC)';
+            } else {
+                $placeData = Place::find($request->place_id);
+                $tempat = $placeData ? $placeData->name : $meeting->place;
+            }
+        }
+
+        // UPDATE DATABASE
         $meeting->update([
-            'topic'      => $request->topic,
-            'start_time' => $request->tanggal . ' ' . $request->jam . ':00',
-            'duration'   => $request->duration,
-            'join_url'   => $linkZoom
+            'agency'          => $request->agency,
+            'description'     => $request->description,
+            'start_time'      => $request->tanggal . ' ' . $request->jam . ':00',
+            'duration'        => $request->duration,
+            'place'           => $tempat,
+            'join_url'        => $link,
+            'zoom_meeting_id' => $meetingId,
+            'password'        => $passcode
         ]);
 
         return redirect('/')->with('success', 'Jadwal berhasil diperbarui!');

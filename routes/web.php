@@ -33,4 +33,8 @@ Route::middleware(['auth', 'is_admin'])->group(function () {
     Route::get('/tambah-user', [UserController::class, 'create'])->name('create.user');
     Route::post('/simpan-user', [UserController::class, 'store'])->name('store.user');
 
+    // Fitur Tambah Tempat Baru
+    Route::get('/tambah-tempat', [App\Http\Controllers\MeetingController::class, 'createPlace'])->name('create.place');
+    Route::post('/simpan-tempat', [App\Http\Controllers\MeetingController::class, 'storePlace'])->name('store.place');
+
 });

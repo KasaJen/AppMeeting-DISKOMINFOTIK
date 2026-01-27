@@ -24,7 +24,6 @@
         /* TAMPILAN DESKTOP */
         @media (min-width: 768px) {
             #calendar { padding: 20px; }
-            
             .desktop-title { white-space: nowrap; }
         }
 
@@ -73,9 +72,16 @@
                     </div>
 
                     @if(auth()->user()->role == 'admin')
-                        <div class="d-flex gap-2">
-                            <a href="{{ route('create.user') }}" class="btn btn-success shadow w-100">+ User</a>
-                            <a href="{{ url('/buat-meeting') }}" class="btn btn-primary shadow w-100">+ Jadwal</a>
+                        <div class="d-flex gap-2 flex-wrap justify-content-center justify-content-md-end w-100">
+                            <a href="{{ route('create.place') }}" class="btn btn-info text-white shadow fw-bold">
+                                + Tempat
+                            </a>
+                            <a href="{{ route('create.user') }}" class="btn btn-success shadow fw-bold">
+                                + User
+                            </a>
+                            <a href="{{ url('/buat-meeting') }}" class="btn btn-primary shadow fw-bold">
+                                + Jadwal
+                            </a>
                         </div>
                     @endif
                 @endguest
@@ -103,9 +109,17 @@
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
-                    <h4 id="modalTopic" class="fw-bold mb-3">Topik</h4>
-                    <p><strong>🕒 Waktu:</strong> <span id="modalTime"></span></p>
-                    <p><strong>⏳ Durasi:</strong> <span id="modalDuration"></span> Menit</p>
+                    <div class="mb-3">
+                        <label class="text-muted small fw-bold mb-1">DINAS / INSTANSI:</label>
+                        <h4 id="modalTopic" class="fw-bold text-primary m-0"></h4>
+                        <div id="modalDesc" class="text-muted mt-2 border-start border-3 border-primary ps-2 fst-italic text-break"></div>
+                    </div>
+                    
+                    <hr>
+
+                    <p><strong>Waktu:</strong> <span id="modalTime"></span></p>
+                    <p><strong>Durasi:</strong> <span id="modalDuration"></span> Menit</p>
+                    
                     <div class="d-grid gap-2 mt-4" id="actionArea"></div>
                 </div>
                 <div class="modal-footer justify-content-between d-none" id="adminActions">
@@ -143,15 +157,11 @@
             const IS_ADMIN = @json(auth()->check() && auth()->user()->role == 'admin');
             var calendarEl = document.getElementById('calendar');
 
-            // Cek Ukuran Layar saat Loading (Smart View)
             var initialMobile = window.innerWidth < 768;
 
             var calendar = new FullCalendar.Calendar(calendarEl, {
                 
-                // --- LOGIKA SMART VIEW ---
-                // HP = List (Daftar), Laptop = Grid (Kotak)
                 initialView: initialMobile ? 'listMonth' : 'dayGridMonth', 
-                
                 themeSystem: 'bootstrap5',
                 locale: 'id',
                 slotLabelFormat: { hour: '2-digit', minute: '2-digit', hour12: false, meridiem: false },
@@ -165,7 +175,6 @@
 
                 contentHeight: initialMobile ? 'auto' : undefined,
 
-                // Logic Resize (Putar Layar/Resize Browser)
                 windowResize: function(view) {
                     var isMobileNow = window.innerWidth < 768;
                     if (isMobileNow) {
@@ -184,13 +193,49 @@
                 eventClick: function(info) {
                     var eventObj = info.event;
                     var props = eventObj.extendedProps;
-                    document.getElementById('modalTitle').innerText = 'Detail: ' + eventObj.title;
-                    document.getElementById('modalTopic').innerText = eventObj.title;
+                    
+                    document.getElementById('modalTitle').innerText = 'Detail Jadwal';
+                    
+                    // Tampilkan Nama Dinas & Deskripsi
+                    document.getElementById('modalTopic').innerText = eventObj.title; 
+                    document.getElementById('modalDesc').innerText = props.deskripsi ? props.deskripsi : '(Tidak ada deskripsi)';
+                    
                     var waktu = eventObj.start.toLocaleString('id-ID', { dateStyle: 'full', timeStyle: 'short' });
                     document.getElementById('modalTime').innerText = waktu;
                     document.getElementById('modalDuration').innerText = props.durasi;
+                    
                     var actionArea = document.getElementById('actionArea');
-                    actionArea.innerHTML = props.join_url ? `<a href="${props.join_url}" target="_blank" class="btn btn-success fw-bold">Gabung ke Meeting</a>` : `<div class="alert alert-secondary text-center fw-bold">Meeting Offline</div>`;
+                    
+                    if (props.join_url) {
+                        // Manual Info Zoom
+                        var manualInfo = '';
+                        if (props.meeting_id || props.password) {
+                            manualInfo = `
+                                <div class="bg-light p-2 rounded border mt-2">
+                                    <small class="d-block text-muted fw-bold mb-1">INFO DETAIL ZOOM:</small>
+                                    <div class="d-flex justify-content-between">
+                                        <span>ID Zoom: <strong>${props.meeting_id ? props.meeting_id : '-'}</strong></span>
+                                        <span>Password: <strong>${props.password ? props.password : '-'}</strong></span>
+                                    </div>
+                                </div>
+                            `;
+                        }
+
+                        var tempatInfo = props.place ? props.place : 'Online';
+                        actionArea.innerHTML = `
+                            <div class="alert alert-info mb-2"><strong>Lokasi:</strong> ${tempatInfo}</div>
+                            <a href="${props.join_url}" target="_blank" class="btn btn-success fw-bold w-100">Gabung Meeting Online</a>
+                            ${manualInfo}
+                        `;
+                    } else {
+                        var lokasi = props.place ? props.place : 'Tempat Belum Diisi';
+                        actionArea.innerHTML = `
+                            <div class="alert alert-secondary text-center">
+                                <strong>Lokasi Meeting:</strong><br>
+                                <span class="fs-5">${lokasi}</span>
+                            </div>
+                        `;
+                    }
                     
                     var adminDiv = document.getElementById('adminActions');
                     if (IS_ADMIN) {
