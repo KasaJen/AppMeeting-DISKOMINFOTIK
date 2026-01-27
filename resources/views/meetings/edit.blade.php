@@ -38,8 +38,8 @@
                     <div class="mb-3">
                         <label class="form-label fw-bold">Tipe Meeting</label>
                         <select name="tipe" id="tipeSelect" class="form-select" onchange="aturTampilanForm()">
-                            <option value="online" {{ $isOnline ? 'selected' : '' }}>Online (Zoom / GMeet)</option>
-                            <option value="offline" {{ !$isOnline ? 'selected' : '' }}>Offline (Tatap Muka)</option>
+                            <option value="online" {{ $isOnline ? 'selected' : '' }}>Meeting Online</option>
+                            <option value="offline" {{ !$isOnline ? 'selected' : '' }}>Meeting</option>
                         </select>
                     </div>
 
@@ -88,7 +88,7 @@
                             
                         </select>
                         <small class="text-muted d-block mt-1">
-                            *Tempat belum ada? <a href="{{ route('create.place') }}" target="_blank" class="fw-bold text-decoration-none">Tambah Disini</a>
+                            *Tempat belum ada? <a href="{{ route('create.place') }}" class="fw-bold text-decoration-none">Tambah Disini</a>
                         </small>
                     </div>
 
@@ -175,7 +175,12 @@
     </script>
 
     <footer class="text-center mt-5 mb-4 text-muted">
-         <small>&copy; {{ date('Y') }} Pemerintah Kota Banjarmasin</small>
+        <small>
+            &copy; {{ date('Y') }} 
+            <a href="https://diskominfotik.banjarmasinkota.go.id/" target="_blank" class="text-decoration-none text-secondary fw-bold">Pemerintah Kota Banjarmasin</a>
+            <br>
+            <a href="https://www.instagram.com/rezarevaldyy" target="_blank" class="text-decoration-none text-muted">Developed with <span class="text-danger">❤️</span></a>
+        </small>
     </footer>
     
 </body>

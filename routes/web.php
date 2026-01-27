@@ -15,6 +15,11 @@ Auth::routes();
 
 Route::get('/', [MeetingController::class, 'index'])->name('home');
 
+// Fitur Share Meeting Publik
+Route::get('/meeting/share/{encrypted_id}', [MeetingController::class, 'showPublic'])
+    ->name('meeting.share')
+    ->where('encrypted_id', '.*');
+
 
 Route::middleware(['auth', 'is_admin'])->group(function () {
     
@@ -34,7 +39,7 @@ Route::middleware(['auth', 'is_admin'])->group(function () {
     Route::post('/simpan-user', [UserController::class, 'store'])->name('store.user');
 
     // Fitur Tambah Tempat Baru
-    Route::get('/tambah-tempat', [App\Http\Controllers\MeetingController::class, 'createPlace'])->name('create.place');
-    Route::post('/simpan-tempat', [App\Http\Controllers\MeetingController::class, 'storePlace'])->name('store.place');
+    Route::get('/tambah-tempat', [MeetingController::class, 'createPlace'])->name('create.place');
+    Route::post('/simpan-tempat', [MeetingController::class, 'storePlace'])->name('store.place');
 
 });

@@ -88,7 +88,7 @@
                             
                         </select>
                         <small class="text-muted d-block mt-1">
-                            *Tempat belum ada? <a href="{{ route('create.place') }}" target="_blank" class="fw-bold text-decoration-none">Tambah Disini</a>
+                            *Tempat belum ada? <a href="{{ route('create.place') }}" class="fw-bold text-decoration-none">Tambah Disini</a>
                         </small>
                     </div>
 
@@ -159,7 +159,7 @@
                 rowLink.style.display = 'none';
                 rowPilihLokasi.style.display = 'block';
 
-                // BCC Atau Luar?
+                // Cek lagi, BCC atau Luar?
                 if (lokasi === 'luar') {
                     rowTempatDatabase.style.display = 'block';
                 } else {

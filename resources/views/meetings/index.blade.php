@@ -30,14 +30,53 @@
         body { background-color: #f4f6f9; }
 
         /* Style Event (Desktop) */
-        .fc-event-title { font-weight: 600; }
-        .fc-event-time { font-weight: bold; margin-right: 5px; }
         .fc-event { cursor: pointer; }
         
         /* Style List View (HP) */
         .fc-list-event-title { font-weight: bold !important; }
         .fc-list-day-text { font-weight: bold; color: #0d6efd; }
         .fc-list-day-side-text { font-weight: bold; color: #6c757d; }
+
+        .fc-daygrid-event {
+            display: flex !important;
+            align-items: center !important;
+            border-radius: 6px !important;  
+            border: none !important;        
+            margin: 2px 4px !important;     
+            padding: 4px 6px !important;    
+            font-size: 0.85em;              
+            box-shadow: 0 2px 3px rgba(0,0,0,0.1); 
+            transition: all 0.2s ease-in-out; 
+            overflow: hidden;
+        }
+
+        .fc-event-time {
+            flex-shrink: 0 !important;
+            margin-right: 6px !important;
+            font-weight: bold !important;
+            color: rgba(255, 255, 255, 0.9) !important;
+            font-size: 0.95em !important;
+        }
+
+        .fc-event-title {
+            flex-grow: 1 !important;
+            white-space: nowrap !important;
+            overflow: hidden !important;
+            text-overflow: ellipsis !important;
+            color: #ffffff !important;
+            font-weight: 600 !important;
+        }
+
+        /* Hover Efek */
+        .fc-daygrid-event:hover {
+            transform: scale(1.03);         
+            box-shadow: 0 5px 10px rgba(0,0,0,0.2); 
+            z-index: 50;                    
+            cursor: pointer;
+        }
+        
+        /* Hilangkan titik (dot) bawaan */
+        .fc-daygrid-event-dot { display: none !important; }
     </style>
 </head>
 
@@ -150,6 +189,21 @@
             Swal.fire({ title: 'Yakin hapus jadwal ini?', icon: 'warning', showCancelButton: true, confirmButtonColor: '#d33', cancelButtonColor: '#6c757d', confirmButtonText: 'Ya, Hapus' }).then((result) => { if (result.isConfirmed) document.getElementById('formDelete').submit(); });
         }
 
+        // FUNGSI COPY LINK
+        function copyShareLink(url) {
+            navigator.clipboard.writeText(url).then(function() {
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Link Disalin!',
+                    text: 'Link publik berhasil disalin. Silakan paste dan bagikan link yang sudah disalin.',
+                    timer: 1500,
+                    showConfirmButton: false
+                });
+            }, function(err) {
+                Swal.fire('Gagal', 'Tidak bisa menyalin link manual.', 'error');
+            });
+        }
+
         document.addEventListener('DOMContentLoaded', function() {
             history.pushState(null, null, location.href);
             window.onpopstate = function () { history.go(1); };
@@ -164,6 +218,9 @@
                 initialView: initialMobile ? 'listMonth' : 'dayGridMonth', 
                 themeSystem: 'bootstrap5',
                 locale: 'id',
+                
+                eventDisplay: 'block', 
+                
                 slotLabelFormat: { hour: '2-digit', minute: '2-digit', hour12: false, meridiem: false },
                 eventTimeFormat: { hour: '2-digit', minute: '2-digit', hour12: false },
                 
@@ -196,7 +253,6 @@
                     
                     document.getElementById('modalTitle').innerText = 'Detail Jadwal';
                     
-                    // Tampilkan Nama Dinas & Deskripsi
                     document.getElementById('modalTopic').innerText = eventObj.title; 
                     document.getElementById('modalDesc').innerText = props.deskripsi ? props.deskripsi : '(Tidak ada deskripsi)';
                     
@@ -206,36 +262,51 @@
                     
                     var actionArea = document.getElementById('actionArea');
                     
+                    // BUTTON SHARE
+                    var shareBtn = '';
+                    if (props.share_url) {
+                        shareBtn = `
+                            <button onclick="copyShareLink('${props.share_url}')" class="btn btn-outline-primary fw-bold w-100 mb-2">
+                                🔗 Salin Link dan Bagikan
+                            </button>
+                        `;
+                    }
+                    
+                    var content = '';
+
                     if (props.join_url) {
-                        // Manual Info Zoom
                         var manualInfo = '';
                         if (props.meeting_id || props.password) {
                             manualInfo = `
                                 <div class="bg-light p-2 rounded border mt-2">
-                                    <small class="d-block text-muted fw-bold mb-1">INFO DETAIL ZOOM:</small>
+                                    <small class="d-block text-muted fw-bold mb-1">INFO MANUAL:</small>
                                     <div class="d-flex justify-content-between">
-                                        <span>ID Zoom: <strong>${props.meeting_id ? props.meeting_id : '-'}</strong></span>
-                                        <span>Password: <strong>${props.password ? props.password : '-'}</strong></span>
+                                        <span>ID: <strong>${props.meeting_id ? props.meeting_id : '-'}</strong></span>
+                                        <span>Pass: <strong>${props.password ? props.password : '-'}</strong></span>
                                     </div>
                                 </div>
                             `;
                         }
 
                         var tempatInfo = props.place ? props.place : 'Online';
-                        actionArea.innerHTML = `
+                        content = `
+                            ${shareBtn}
                             <div class="alert alert-info mb-2"><strong>Lokasi:</strong> ${tempatInfo}</div>
-                            <a href="${props.join_url}" target="_blank" class="btn btn-success fw-bold w-100">Gabung Meeting Online</a>
+                            <a href="${props.join_url}" target="_blank" class="btn btn-success fw-bold w-100">Gabung Meeting</a>
                             ${manualInfo}
                         `;
                     } else {
                         var lokasi = props.place ? props.place : 'Tempat Belum Diisi';
-                        actionArea.innerHTML = `
+                        content = `
+                            ${shareBtn}
                             <div class="alert alert-secondary text-center">
                                 <strong>Lokasi Meeting:</strong><br>
                                 <span class="fs-5">${lokasi}</span>
                             </div>
                         `;
                     }
+
+                    actionArea.innerHTML = content;
                     
                     var adminDiv = document.getElementById('adminActions');
                     if (IS_ADMIN) {
