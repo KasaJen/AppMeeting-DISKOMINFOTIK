@@ -105,6 +105,12 @@
                                   placeholder="Jelaskan detail yang akan dibahas..." required>{{ old('description', $meeting->description) }}</textarea>
                     </div>
 
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Permintaan Tambahan (Opsional)</label>
+                        <textarea name="additional_requests" class="form-control" rows="2" 
+                                  placeholder="Silahkan isi permintaan tambahan...(Kosongkan jika tidak ada)">{{ old('additional_requests', $meeting->additional_requests ?? '') }}</textarea>
+                    </div>
+
                     @php
                         $tglValue = date('Y-m-d', strtotime($meeting->start_time));
                         $jamValue = date('H:i', strtotime($meeting->start_time));

@@ -5,7 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Detail Kegiatan - {{ $meeting->agency }}</title>
     <link rel="icon" href="{{ asset('images/KotaBanjarmasin.png') }}" type="image/png">
+    
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+
     <style>
         body { background-color: #f0f2f5; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
         .ticket-container { max-width: 600px; margin: 40px auto; background: white; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.08); overflow: hidden; border: 1px solid #e1e4e8; }
@@ -49,6 +52,15 @@
                 <div class="ticket-label">Topik Pembahasan</div>
                 <div class="ticket-value text-break">{{ $meeting->description }}</div>
             </div>
+
+            @if($meeting->additional_requests)
+                <div class="info-row" style="background-color: #fff3cd;">
+                    <div class="ticket-label text-warning-emphasis">
+                        <i class="bi bi-exclamation-triangle-fill me-1"></i> Permintaan Tambahan
+                    </div>
+                    <div class="ticket-value text-dark small" style="white-space: pre-line;">{{ $meeting->additional_requests }}</div>
+                </div>
+            @endif
 
             <div class="row m-0">
                 <div class="col-md-6 info-row bg-soft border-end">
@@ -108,14 +120,14 @@
         </div>
     </div>
 
-        <footer class="text-center mt-5 mb-4 text-muted">
-            <small>
-                &copy; {{ date('Y') }} 
-                <a href="https://diskominfotik.banjarmasinkota.go.id/" target="_blank" class="text-decoration-none text-secondary fw-bold">Pemerintah Kota Banjarmasin</a>
-                <br>
-                <a href="https://www.instagram.com/rezarevaldyy" target="_blank" class="text-decoration-none text-muted">Developed with <span class="text-danger">❤️</span></a>
-            </small>
-        </footer>
+    <footer class="text-center mt-5 mb-4 text-muted">
+        <small>
+            &copy; {{ date('Y') }} 
+            <a href="https://diskominfotik.banjarmasinkota.go.id/" target="_blank" class="text-decoration-none text-secondary fw-bold">Pemerintah Kota Banjarmasin</a>
+            <br>
+            <a href="https://www.instagram.com/rezarevaldyy" target="_blank" class="text-decoration-none text-muted">Developed with <span class="text-danger">❤️</span></a>
+        </small>
+    </footer>
 
 </body>
 </html>

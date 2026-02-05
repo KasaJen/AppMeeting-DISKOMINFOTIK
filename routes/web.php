@@ -42,4 +42,6 @@ Route::middleware(['auth', 'is_admin'])->group(function () {
     Route::get('/tambah-tempat', [MeetingController::class, 'createPlace'])->name('create.place');
     Route::post('/simpan-tempat', [MeetingController::class, 'storePlace'])->name('store.place');
 
+    // Fitur Hapus Tempat
+    Route::delete('/hapus-tempat/{id}', [MeetingController::class, 'destroyPlace'])->name('delete.place');
 });

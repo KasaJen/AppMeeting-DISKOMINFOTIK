@@ -35,16 +35,9 @@ class LoginController extends Controller
      */
     public function __construct()
     {
-        // Tamu (guest) boleh masuk sini (untuk login).
-        // Tapi fitur 'logout' hanya boleh diakses yang sudah login.
         $this->middleware('guest')->except('logout');
     }
 
-    /**
-     * KITA TAMBAHKAN INI UNTUK MEMPERBAIKI LOGOUT
-     * Agar setelah logout, user diarahkan kembali ke halaman login,
-     * bukan ke halaman kosong atau error.
-     */
     public function logout(Request $request)
     {
         $this->guard()->logout();
@@ -53,7 +46,6 @@ class LoginController extends Controller
 
         $request->session()->regenerateToken();
 
-        // Redirect ke halaman login setelah logout sukses
         return redirect('/login');
     }
 }

@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Http\Request;
 use App\Models\Meeting;
@@ -11,10 +10,11 @@ use Carbon\Carbon;
 
 class MeetingController extends Controller
 {
-    // HALAMAN UTAMA (KALENDER)
+    // HALAMAN UTAMA (KALENDER & TABEL)
     public function index()
     {
-        $meetings = Meeting::orderBy('created_at', 'desc')->get();
+        // Urutkan berdasarkan waktu meeting dari yang terdekat
+        $meetings = Meeting::orderBy('start_time', 'asc')->get();
 
         $events = $meetings->map(function($item) {
             // Logika Warna: Online = Biru, Offline = Hijau
@@ -29,28 +29,27 @@ class MeetingController extends Controller
                 
                 'extendedProps' => [
                     'deskripsi' => $item->description,
+                    'permintaan' => $item->additional_requests,
                     'durasi' => $item->duration,
-                    'place' => $item->place,
-                    
+                    'place' => $item->placeDetail ? $item->placeDetail->name : $item->place,
                     'join_url' => $item->join_url,
                     'meeting_id' => $item->zoom_meeting_id,
                     'password' => $item->password,
-
                     'share_url' => route('meeting.share', Crypt::encryptString($item->id)),
-
                     'edit_url' => route('edit.meeting', $item->id),
                     'delete_id' => $item->id 
                 ]
             ];
         });
 
-        return view('meetings.index', compact('events'));
+        return view('meetings.index', compact('events', 'meetings'));
     }
 
     // FITUR TAMBAH TEMPAT BARU
     public function createPlace()
     {
-        return view('places.create');
+        $places = Place::orderBy('id', 'desc')->get();
+        return view('places.create', compact('places'));
     }
 
     public function storePlace(Request $request)
@@ -60,7 +59,6 @@ class MeetingController extends Controller
         $existingPlace = Place::where('name', $request->name)->first();
 
         if ($existingPlace) {
-            // KALAU SUDAH ADA
             if ($request->ajax()) {
                 return response()->json([
                     'status'  => 'exist',
@@ -68,9 +66,9 @@ class MeetingController extends Controller
                     'data'    => $existingPlace
                 ]);
             }
+            return back()->with('error', 'Tempat sudah ada!');
         }
 
-        // KALAU BELUM ADA
         $newPlace = Place::create(['name' => $request->name]);
 
         if ($request->ajax()) {
@@ -81,7 +79,20 @@ class MeetingController extends Controller
             ]);
         }
 
-        return redirect('/')->with('success', 'Tempat berhasil ditambahkan!');
+        return back()->with('success', 'Tempat berhasil ditambahkan!');
+    }
+
+    // HAPUS TEMPAT
+    public function destroyPlace($id)
+    {
+        $place = Place::find($id);
+        
+        if ($place) {
+            $place->delete();
+            return back()->with('success', 'Master tempat berhasil dihapus!');
+        }
+
+        return back()->with('error', 'Data tidak ditemukan.');
     }
 
     // HALAMAN BUAT JADWAL
@@ -93,7 +104,7 @@ class MeetingController extends Controller
 
     public function store(Request $request)
     {
-        // VALIDASI (Supaya Data Tidak Error/Kosong)
+        // VALIDASI INPUT
         $rules = [
             'agency'      => 'required|string',
             'description' => 'required|string',
@@ -102,13 +113,9 @@ class MeetingController extends Controller
             'duration'    => 'required|integer',
         ];
 
-        // Aturan Khusus:
-        // Kalau Online -> WAJIB isi Link
         if ($request->tipe == 'online') {
             $rules['join_url'] = 'required|url'; 
-        } 
-        // Kalau Luar BCC -> WAJIB pilih Tempat
-        elseif ($request->lokasi_type == 'luar') {
+        } elseif ($request->lokasi_type == 'luar') {
             $rules['place_id'] = 'required';
         }
 
@@ -117,50 +124,63 @@ class MeetingController extends Controller
             'place_id.required' => 'Silakan pilih tempat meeting dari daftar!',
         ]);
 
-        // CEK BENTROK JADWAL
+        // TENTUKAN NAMA TEMPAT & ID TEMPAT
+        $tempat = '';
+        $placeId = null;
+        
+        $link = null;
+        $meetingId = null;
+        $passcode = null;
+
+        if ($request->tipe == 'online') {
+            $tempat      = 'Meeting Online';
+            $link        = $request->join_url;
+            $meetingId   = $request->zoom_meeting_id;
+            $passcode    = $request->password;
+        } else {
+            // Offline
+            if ($request->lokasi_type == 'bcc') {
+                $tempat = 'Banjarmasin Command Center (BCC)';
+                $placeId = null;
+            } else {
+                // Lokasi Luar: Ambil ID dan Namanya
+                $placeData = Place::find($request->place_id);
+                if ($placeData) {
+                    $tempat = $placeData->name;
+                    $placeId = $placeData->id;
+                } else {
+                    $tempat = 'Tempat Tidak Dikenal';
+                }
+            }
+        }
+
+        // CEK BENTROK (Cek Waktu DAN Tempat)
         $newStart = Carbon::parse($request->tanggal . ' ' . $request->jam . ':00');
         $newEnd   = $newStart->copy()->addMinutes($request->duration);
 
         $bentrok = Meeting::where(function ($query) use ($newStart, $newEnd) {
             $query->where('start_time', '<', $newEnd)
                   ->whereRaw("DATE_ADD(start_time, INTERVAL duration MINUTE) > ?", [$newStart]);
-        })->exists();
+        })
+        ->where('place', $tempat)
+        ->exists();
 
         if ($bentrok) {
-            return back()->withInput()->with('error', 'GAGAL! Jadwal bentrok dengan meeting lain di jam tersebut.');
-        }
-
-        // LOGIKA PENENTUAN TEMPAT & DATA ONLINE
-        $link = null;
-        $meetingId = null;
-        $passcode = null;
-        $tempat = null;
-
-        if ($request->tipe == 'online') {
-            $tempat    = 'Meeting Online';
-            $link      = $request->join_url;
-            $meetingId = $request->zoom_meeting_id;
-            $passcode  = $request->password;
-        } else {
-            // Kalau Offline
-            if ($request->lokasi_type == 'bcc') {
-                $tempat = 'Banjarmasin Command Center (BCC)';
-            } else {
-                $placeData = Place::find($request->place_id);
-                $tempat = $placeData ? $placeData->name : 'Tempat Tidak Dikenal';
-            }
+            return back()->withInput()->with('error', 'GAGAL! Tempat "' . $tempat . '" sudah terisi jadwal lain di jam tersebut.');
         }
 
         // SIMPAN KE DATABASE
         Meeting::create([
-            'agency'          => $request->agency,
-            'description'     => $request->description,
-            'start_time'      => $request->tanggal . ' ' . $request->jam . ':00',
-            'duration'        => $request->duration,
-            'place'           => $tempat,
-            'join_url'        => $link,
-            'zoom_meeting_id' => $meetingId, 
-            'password'        => $passcode,
+            'agency'              => $request->agency,
+            'description'         => $request->description,
+            'additional_requests' => $request->additional_requests,
+            'start_time'          => $request->tanggal . ' ' . $request->jam . ':00',
+            'duration'            => $request->duration,
+            'place'               => $tempat,
+            'place_id'            => $placeId,
+            'join_url'            => $link,
+            'zoom_meeting_id'     => $meetingId, 
+            'password'            => $passcode,
         ]);
 
         return redirect('/')->with('success', 'Jadwal berhasil dibuat!');
@@ -176,7 +196,7 @@ class MeetingController extends Controller
 
     public function update(Request $request, $id)
     {
-        // VALIDASI KETAT JUGA DI UPDATE
+        // VALIDASI INPUT
         $rules = [
             'agency'   => 'required',
             'tanggal'  => 'required',
@@ -192,7 +212,39 @@ class MeetingController extends Controller
 
         $request->validate($rules);
 
-        // CEK BENTROK
+        // TENTUKAN NAMA TEMPAT & ID TEMPAT
+        $meeting = Meeting::find($id);
+        
+        $tempat = '';
+        $placeId = null;
+
+        $link = null;
+        $meetingId = null;
+        $passcode = null;
+
+        if ($request->tipe == 'online') {
+            $tempat      = 'Meeting Online';
+            $link        = $request->join_url;
+            $meetingId   = $request->zoom_meeting_id;
+            $passcode    = $request->password;
+        } else {
+            // Offline
+            if ($request->lokasi_type == 'bcc') {
+                $tempat = 'Banjarmasin Command Center (BCC)';
+                $placeId = null;
+            } else {
+                // Lokasi Luar
+                $placeData = Place::find($request->place_id);
+                if ($placeData) {
+                    $tempat = $placeData->name;
+                    $placeId = $placeData->id;
+                } else {
+                    $tempat = ($meeting->place != 'Meeting Online') ? $meeting->place : 'Tempat Belum Dipilih';
+                }
+            }
+        }
+
+        // CEK BENTROK (Waktu DAN Tempat)
         $newStart = Carbon::parse($request->tanggal . ' ' . $request->jam . ':00');
         $newEnd   = $newStart->copy()->addMinutes($request->duration);
 
@@ -200,51 +252,26 @@ class MeetingController extends Controller
             ->where(function ($query) use ($newStart, $newEnd) {
                 $query->where('start_time', '<', $newEnd)
                       ->whereRaw("DATE_ADD(start_time, INTERVAL duration MINUTE) > ?", [$newStart]);
-            })->exists();
+            })
+            ->where('place', $tempat)
+            ->exists();
 
         if ($bentrok) {
-            return back()->withInput()->with('error', 'GAGAL UPDATE! Jadwal bentrok dengan meeting lain.');
-        }
-
-        $meeting = Meeting::find($id);
-
-        // LOGIKA UPDATE
-        $link = null;
-        $meetingId = null;
-        $passcode = null;
-        $tempat = null;
-
-        if ($request->tipe == 'online') {
-            $tempat    = 'Meeting Online';
-            $link      = $request->join_url;
-            $meetingId = $request->zoom_meeting_id;
-            $passcode  = $request->password;
-        } else {
-            // Kalau Offline
-            if ($request->lokasi_type == 'bcc') {
-                $tempat = 'Banjarmasin Command Center (BCC)';
-            } else {
-                // Logic Perbaikan: Pastikan nama tempat terupdate
-                $placeData = Place::find($request->place_id);
-                if ($placeData) {
-                    $tempat = $placeData->name;
-                } else {
-                    // Fallback: Jika tempat lama bukan 'Meeting Online', pakai lama.
-                    $tempat = ($meeting->place != 'Meeting Online') ? $meeting->place : 'Tempat Belum Dipilih';
-                }
-            }
+            return back()->withInput()->with('error', 'GAGAL UPDATE! Tempat "' . $tempat . '" bentrok dengan jadwal lain.');
         }
 
         // UPDATE DATABASE
         $meeting->update([
-            'agency'          => $request->agency,
-            'description'     => $request->description,
-            'start_time'      => $request->tanggal . ' ' . $request->jam . ':00',
-            'duration'        => $request->duration,
-            'place'           => $tempat,
-            'join_url'        => $link,
-            'zoom_meeting_id' => $meetingId,
-            'password'        => $passcode
+            'agency'              => $request->agency,
+            'description'         => $request->description,
+            'additional_requests' => $request->additional_requests,
+            'start_time'          => $request->tanggal . ' ' . $request->jam . ':00',
+            'duration'            => $request->duration,
+            'place'               => $tempat,
+            'place_id'            => $placeId,
+            'join_url'            => $link,
+            'zoom_meeting_id'     => $meetingId,
+            'password'            => $passcode
         ]);
 
         return redirect('/')->with('success', 'Jadwal berhasil diperbarui!');
@@ -264,15 +291,9 @@ class MeetingController extends Controller
     public function showPublic($encrypted_id)
     {
         try {
-            // Pecahkan Enkripsi
             $id = Crypt::decryptString($encrypted_id);
-            
-            // Cari Datanya
             $meeting = Meeting::findOrFail($id);
-
-            // Tampilkan View Khusus
             return view('meetings.share', compact('meeting'));
-
         } catch (\Exception $e) {
             abort(404);
         }

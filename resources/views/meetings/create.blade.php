@@ -59,7 +59,7 @@
                             <div class="col-md-6 mb-3">
                                 <label class="form-label fw-bold">Meeting ID (Opsional)</label>
                                 <input type="text" name="zoom_meeting_id" class="form-control" 
-                                       placeholder="Contoh: 890 1234 5678" value="{{ old('zoom_meeting_id') }}">
+                                       placeholder="Contoh: 123 4567 8910" value="{{ old('zoom_meeting_id') }}">
                             </div>
                             <div class="col-md-6 mb-3">
                                 <label class="form-label fw-bold">Passcode (Opsional)</label>
@@ -105,6 +105,12 @@
                                   placeholder="Jelaskan detail yang akan dibahas..." required>{{ old('description') }}</textarea>
                     </div>
 
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Permintaan Tambahan (Opsional)</label>
+                        <textarea name="additional_requests" class="form-control" rows="2" 
+                                  placeholder="Silahkan isi permintaan tambahan...(Kosongkan jika tidak ada)">{{ old('additional_requests') }}</textarea>
+                    </div>
+
                     <div class="row">
                         <div class="col-md-7 mb-3">
                             <label class="form-label fw-bold">Tanggal</label>
@@ -144,7 +150,6 @@
         function aturTampilanForm() {
             var tipe = document.getElementById('tipeSelect').value;
             var lokasi = document.getElementById('lokasiSelect').value;
-
             var rowLink = document.getElementById('rowLink');
             var rowPilihLokasi = document.getElementById('rowPilihLokasi');
             var rowTempatDatabase = document.getElementById('rowTempatDatabase');
