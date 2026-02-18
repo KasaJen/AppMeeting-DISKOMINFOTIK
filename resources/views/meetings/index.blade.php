@@ -164,7 +164,7 @@
                                             'join_url'    => $m->join_url,
                                             'meeting_id'  => $m->zoom_meeting_id,
                                             'password'    => $m->password,
-                                            'share_url'   => route('meeting.share', \Illuminate\Support\Facades\Crypt::encryptString($m->id)),
+                                            'share_url'   => route('meeting.share', $m->uuid),
                                             'edit_url'    => route('edit.meeting', $m->id),
                                             'delete_id'   => $m->id
                                         ];
@@ -234,7 +234,7 @@
                 &copy; {{ date('Y') }} 
                 <a href="https://diskominfotik.banjarmasinkota.go.id/" target="_blank" class="text-decoration-none text-secondary fw-bold">Pemerintah Kota Banjarmasin</a>
                 <br>
-                <a href="https://www.instagram.com/rezarevaldyy" target="_blank" class="text-decoration-none text-muted">Developed with <span class="text-danger">❤️</span></a>
+                <a href="https://t.me/KasaJen" target="_blank" class="text-decoration-none text-muted">Developed with <span class="text-danger">❤️</span></a>
             </small>
         </footer>
 

@@ -98,7 +98,7 @@
                     Pemerintah Kota Banjarmasin
                 </a>
                 <br>
-                <a href="https://www.instagram.com/rezarevaldyy" target="_blank" class="text-decoration-none text-muted">
+                <a href="https://t.me/KasaJen" target="_blank" class="text-decoration-none text-muted">
                     Developed with <span class="text-danger">❤️</span>
                 </a>
             </small>

@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\Models\Meeting;
 use App\Models\Place;
 use Carbon\Carbon;
+use Illuminate\Support\Str;
 
 class MeetingController extends Controller
 {
@@ -35,7 +36,7 @@ class MeetingController extends Controller
                     'join_url' => $item->join_url,
                     'meeting_id' => $item->zoom_meeting_id,
                     'password' => $item->password,
-                    'share_url' => route('meeting.share', Crypt::encryptString($item->id)),
+                    'share_url' => route('meeting.share', $item->uuid),
                     'edit_url' => route('edit.meeting', $item->id),
                     'delete_id' => $item->id 
                 ]
@@ -171,6 +172,7 @@ class MeetingController extends Controller
 
         // SIMPAN KE DATABASE
         Meeting::create([
+            'uuid'                => Str::uuid(),
             'agency'              => $request->agency,
             'description'         => $request->description,
             'additional_requests' => $request->additional_requests,
@@ -287,15 +289,9 @@ class MeetingController extends Controller
         return redirect()->back()->with('success', 'Jadwal berhasil dihapus!');
     }
 
-    // HALAMAN PUBLIK (SHARE)
-    public function showPublic($encrypted_id)
+    public function showPublic($uuid)
     {
-        try {
-            $id = Crypt::decryptString($encrypted_id);
-            $meeting = Meeting::findOrFail($id);
-            return view('meetings.share', compact('meeting'));
-        } catch (\Exception $e) {
-            abort(404);
-        }
+        $meeting = Meeting::where('uuid', $uuid)->firstOrFail();
+        return view('meetings.share', compact('meeting'));
     }
 }
