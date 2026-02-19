@@ -234,7 +234,7 @@
                 &copy; {{ date('Y') }} 
                 <a href="https://diskominfotik.banjarmasinkota.go.id/" target="_blank" class="text-decoration-none text-secondary fw-bold">Pemerintah Kota Banjarmasin</a>
                 <br>
-                <a href="https://t.me/KasaJen" target="_blank" class="text-decoration-none text-muted">Developed with <span class="text-danger">❤️</span></a>
+                <a href="https://github.com/KasaJen/" target="_blank" class="text-decoration-none text-muted">Developed with <span class="text-danger">❤️</span></a>
             </small>
         </footer>
 

@@ -186,7 +186,7 @@
                     Pemerintah Kota Banjarmasin
                 </a>
                 <br>
-                <a href="https://t.me/KasaJen" target="_blank" class="text-decoration-none text-muted">
+                <a href="https://github.com/KasaJen/" target="_blank" class="text-decoration-none text-muted">
                     Developed with <span class="text-danger">❤️</span>
                 </a>
             </small>
