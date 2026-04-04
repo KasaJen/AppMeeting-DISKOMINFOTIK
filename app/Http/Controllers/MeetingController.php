@@ -116,7 +116,9 @@ class MeetingController extends Controller
 
         if ($request->tipe == 'online') {
             $rules['join_url'] = 'required|url'; 
-        } elseif ($request->lokasi_type == 'luar') {
+        } 
+        
+        if ($request->lokasi_type == 'luar') {
             $rules['place_id'] = 'required';
         }
 
@@ -124,38 +126,31 @@ class MeetingController extends Controller
             'join_url.required' => 'Link Zoom/GMeet wajib diisi kalau meeting online!',
             'place_id.required' => 'Silakan pilih tempat meeting dari daftar!',
         ]);
+        
+        // Data Online
+        $link      = ($request->tipe == 'online') ? $request->join_url : null;
+        $meetingId = ($request->tipe == 'online') ? $request->zoom_meeting_id : null;
+        $passcode  = ($request->tipe == 'online') ? $request->password : null;
 
-        // TENTUKAN NAMA TEMPAT & ID TEMPAT
+        // Data Offline
         $tempat = '';
         $placeId = null;
-        
-        $link = null;
-        $meetingId = null;
-        $passcode = null;
 
-        if ($request->tipe == 'online') {
-            $tempat      = 'Meeting Online';
-            $link        = $request->join_url;
-            $meetingId   = $request->zoom_meeting_id;
-            $passcode    = $request->password;
-        } else {
-            // Offline
-            if ($request->lokasi_type == 'bcc') {
-                $tempat = 'Banjarmasin Command Center (BCC)';
-                $placeId = null;
+        if ($request->lokasi_type == 'bcc') {
+            $tempat = 'Banjarmasin Command Center (BCC)';
+        } elseif ($request->lokasi_type == 'luar') {
+            $placeData = Place::find($request->place_id);
+            if ($placeData) {
+                $tempat = $placeData->name;
+                $placeId = $placeData->id;
             } else {
-                // Lokasi Luar: Ambil ID dan Namanya
-                $placeData = Place::find($request->place_id);
-                if ($placeData) {
-                    $tempat = $placeData->name;
-                    $placeId = $placeData->id;
-                } else {
-                    $tempat = 'Tempat Tidak Dikenal';
-                }
+                $tempat = 'Tempat Tidak Dikenal';
             }
+        } else {
+            $tempat = 'Belum Ditentukan';
         }
 
-        // CEK BENTROK (Cek Waktu DAN Tempat)
+        // CEK BENTROK
         $newStart = Carbon::parse($request->tanggal . ' ' . $request->jam . ':00');
         $newEnd   = $newStart->copy()->addMinutes($request->duration);
 
@@ -208,42 +203,35 @@ class MeetingController extends Controller
 
         if ($request->tipe == 'online') {
             $rules['join_url'] = 'required|url';
-        } elseif ($request->lokasi_type == 'luar') {
+        } 
+        
+        if ($request->lokasi_type == 'luar') {
             $rules['place_id'] = 'required';
         }
 
         $request->validate($rules);
 
-        // TENTUKAN NAMA TEMPAT & ID TEMPAT
         $meeting = Meeting::find($id);
         
+        $link      = ($request->tipe == 'online') ? $request->join_url : null;
+        $meetingId = ($request->tipe == 'online') ? $request->zoom_meeting_id : null;
+        $passcode  = ($request->tipe == 'online') ? $request->password : null;
+
         $tempat = '';
         $placeId = null;
 
-        $link = null;
-        $meetingId = null;
-        $passcode = null;
-
-        if ($request->tipe == 'online') {
-            $tempat      = 'Meeting Online';
-            $link        = $request->join_url;
-            $meetingId   = $request->zoom_meeting_id;
-            $passcode    = $request->password;
-        } else {
-            // Offline
-            if ($request->lokasi_type == 'bcc') {
-                $tempat = 'Banjarmasin Command Center (BCC)';
-                $placeId = null;
+        if ($request->lokasi_type == 'bcc') {
+            $tempat = 'Banjarmasin Command Center (BCC)';
+        } elseif ($request->lokasi_type == 'luar') {
+            $placeData = Place::find($request->place_id);
+            if ($placeData) {
+                $tempat = $placeData->name;
+                $placeId = $placeData->id;
             } else {
-                // Lokasi Luar
-                $placeData = Place::find($request->place_id);
-                if ($placeData) {
-                    $tempat = $placeData->name;
-                    $placeId = $placeData->id;
-                } else {
-                    $tempat = ($meeting->place != 'Meeting Online') ? $meeting->place : 'Tempat Belum Dipilih';
-                }
+                $tempat = $meeting->place ?? 'Tempat Belum Dipilih';
             }
+        } else {
+            $tempat = $meeting->place ?? 'Tempat Belum Dipilih';
         }
 
         // CEK BENTROK (Waktu DAN Tempat)

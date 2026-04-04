@@ -79,39 +79,41 @@
             </div>
 
             <div class="info-row">
-                <div class="ticket-label">Lokasi / Link Meeting</div>
-                
-                @if($meeting->join_url)
-                    <div class="mt-2">
-                        <a href="{{ $meeting->join_url }}" target="_blank" class="btn btn-join w-100 d-block text-decoration-none text-center mb-3">
-                            GABUNG MEETING SEKARANG
-                        </a>
-
-                        @if($meeting->zoom_meeting_id || $meeting->password)
-                            <div class="row g-2">
-                                <div class="col-6">
-                                    <div class="credential-box">
-                                        <div class="credential-label">Meeting ID</div>
-                                        <div class="credential-value">{{ $meeting->zoom_meeting_id ?? '-' }}</div>
-                                    </div>
-                                </div>
-                                <div class="col-6">
-                                    <div class="credential-box">
-                                        <div class="credential-label">Passcode</div>
-                                        <div class="credential-value">{{ $meeting->password ?? '-' }}</div>
-                                    </div>
-                                </div>
-                            </div>
-                        @endif
-                    </div>
-                @else
-                    <div class="ticket-value fs-5 mt-1">
-                        {{ $meeting->place }}
-                    </div>
-                @endif
+                <div class="ticket-label">Lokasi Meeting</div>
+                <div class="ticket-value fs-5 mt-1">
+                    <i class="bi bi-geo-alt-fill text-danger me-1"></i> {{ $meeting->place }}
+                </div>
             </div>
             
-            <div class="info-row bg-soft text-center py-4">
+            @if($meeting->join_url)
+            <div class="info-row bg-soft">
+                <div class="ticket-label">Link Meeting Online</div>
+                <div class="mt-2">
+                    <a href="{{ $meeting->join_url }}" target="_blank" class="btn btn-join w-100 d-block text-decoration-none text-center mb-3">
+                        <i class="bi bi-camera-video-fill me-2"></i> GABUNG MEETING SEKARANG
+                    </a>
+
+                    @if($meeting->zoom_meeting_id || $meeting->password)
+                        <div class="row g-2">
+                            <div class="col-6">
+                                <div class="credential-box">
+                                    <div class="credential-label">Meeting ID</div>
+                                    <div class="credential-value">{{ $meeting->zoom_meeting_id ?? '-' }}</div>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="credential-box">
+                                    <div class="credential-label">Passcode</div>
+                                    <div class="credential-value">{{ $meeting->password ?? '-' }}</div>
+                                </div>
+                            </div>
+                        </div>
+                    @endif
+                </div>
+            </div>
+            @endif
+            
+            <div class="info-row text-center py-4">
                 <small class="text-muted d-block" style="font-size: 11px;">
                     Simpan link ini untuk melihat detail jadwal sewaktu-waktu.
                 </small>

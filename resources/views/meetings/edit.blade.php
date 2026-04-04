@@ -39,7 +39,7 @@
                         <label class="form-label fw-bold">Tipe Meeting</label>
                         <select name="tipe" id="tipeSelect" class="form-select" onchange="aturTampilanForm()">
                             <option value="online" {{ $isOnline ? 'selected' : '' }}>Meeting Online</option>
-                            <option value="offline" {{ !$isOnline ? 'selected' : '' }}>Meeting</option>
+                            <option value="offline" {{ !$isOnline ? 'selected' : '' }}>Meeting Offline</option>
                         </select>
                     </div>
 
@@ -67,18 +67,18 @@
                         </div>
                     </div>
 
-                    <div class="mb-3" id="rowPilihLokasi" style="display: none;">
-                        <label class="form-label fw-bold">Pilih Lokasi</label>
+                    <div class="mb-3" id="rowPilihLokasi" style="display: block;">
+                        <label class="form-label fw-bold"> LokasiMeeting</label>
                         <select name="lokasi_type" id="lokasiSelect" class="form-select" onchange="aturTampilanForm()">
-                            <option value="bcc" {{ $isBCC ? 'selected' : '' }}>Di Ruang BCC</option>
-                            <option value="luar" {{ (!$isBCC && !$isOnline) ? 'selected' : '' }}>Diluar BCC (Tempat Lain)</option>
+                            <option value="bcc" {{ $isBCC ? 'selected' : '' }}>Banjarmasin Command Center (BCC)</option>
+                            <option value="luar" {{ !$isBCC ? 'selected' : '' }}>Diluar BCC (Tempat Lain)</option>
                         </select>
                     </div>
 
                     <div class="mb-3" id="rowTempatDatabase" style="display: none;">
                         <label class="form-label fw-bold">Pilih Lokasi Luar</label>
                         <select name="place_id" class="form-select">
-                            <option value="" disabled>-- Pilih Daftar Tempat --</option>
+                            <option value="" disabled {{ !$meeting->place_id ? 'selected' : '' }}>-- Pilih Daftar Tempat --</option>
                             
                             @foreach($places as $p)
                                 <option value="{{ $p->id }}" {{ $p->name == $meeting->place ? 'selected' : '' }}>
@@ -161,20 +161,20 @@
 
             if (tipe === 'online') {
                 rowLink.style.display = 'block';
-                rowPilihLokasi.style.display = 'none';
-                rowTempatDatabase.style.display = 'none';
             } else {
                 rowLink.style.display = 'none';
-                rowPilihLokasi.style.display = 'block';
+            }
 
-                if (lokasi === 'luar') {
-                    rowTempatDatabase.style.display = 'block';
-                } else {
-                    rowTempatDatabase.style.display = 'none';
-                }
+            rowPilihLokasi.style.display = 'block';
+
+            if (lokasi === 'luar') {
+                rowTempatDatabase.style.display = 'block';
+            } else {
+                rowTempatDatabase.style.display = 'none';
             }
         }
 
+        // Jalankan saat load agar menyesuaikan dengan data dari database
         document.addEventListener('DOMContentLoaded', function() {
             aturTampilanForm();
         });

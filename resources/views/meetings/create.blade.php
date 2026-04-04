@@ -40,7 +40,7 @@
                         <label class="form-label fw-bold">Tipe Meeting</label>
                         <select name="tipe" id="tipeSelect" class="form-select" onchange="aturTampilanForm()">
                             <option value="online">Meeting Online</option>
-                            <option value="offline">Meeting</option>
+                            <option value="offline">Meeting Offline</option>
                         </select>
                     </div>
 
@@ -69,10 +69,10 @@
                         </div>
                     </div>
 
-                    <div class="mb-3" id="rowPilihLokasi" style="display: none;">
-                        <label class="form-label fw-bold">Pilih Lokasi</label>
+                    <div class="mb-3" id="rowPilihLokasi" style="display: block;">
+                        <label class="form-label fw-bold">Lokasi Meeting</label>
                         <select name="lokasi_type" id="lokasiSelect" class="form-select" onchange="aturTampilanForm()">
-                            <option value="bcc">Di Ruang BCC</option>
+                            <option value="bcc">Banjarmasin Command Center (BCC)</option>
                             <option value="luar">Diluar BCC (Tempat Lain)</option>
                         </select>
                     </div>
@@ -146,30 +146,26 @@
             enableTime: true, noCalendar: true, dateFormat: "H:i", time_24hr: true, disableMobile: true
         });
 
-        // LOGIKA TAMPILAN DINAMIS
         function aturTampilanForm() {
             var tipe = document.getElementById('tipeSelect').value;
             var lokasi = document.getElementById('lokasiSelect').value;
+            
             var rowLink = document.getElementById('rowLink');
             var rowPilihLokasi = document.getElementById('rowPilihLokasi');
             var rowTempatDatabase = document.getElementById('rowTempatDatabase');
 
             if (tipe === 'online') {
-                // Kalo Online: Munculkan Link, Sembunyikan urusan lokasi
                 rowLink.style.display = 'block';
-                rowPilihLokasi.style.display = 'none';
-                rowTempatDatabase.style.display = 'none';
             } else {
-                // Kalo Offline: Sembunyikan Link, Munculkan Pilihan Lokasi
                 rowLink.style.display = 'none';
-                rowPilihLokasi.style.display = 'block';
+            }
 
-                // Cek lagi, BCC atau Luar?
-                if (lokasi === 'luar') {
-                    rowTempatDatabase.style.display = 'block';
-                } else {
-                    rowTempatDatabase.style.display = 'none';
-                }
+            rowPilihLokasi.style.display = 'block';
+
+            if (lokasi === 'luar') {
+                rowTempatDatabase.style.display = 'block';
+            } else {
+                rowTempatDatabase.style.display = 'none';
             }
         }
 
